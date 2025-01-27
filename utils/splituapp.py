@@ -80,14 +80,6 @@ def extract(source, flist):
 								chunk = filesize
 							o.write(f.read(chunk))
 							filesize -= chunk
-					else:
-						with open(outdir+os.sep+filename+'.img', 'ab') as o:
-							while filesize > 0:
-					 		if chunk > filesize:
-					 			chunk = filesize
-
-					 		o.write(f.read(chunk))
-					 		filesize -= chunk
 				except:
 					print('ERROR: Failed to create '+filename+'.img\n')
 					return 1
