@@ -134,6 +134,7 @@ fi
 # Set Names of Downloader Utility Programs
 MEGAMEDIADRIVE_DL="${UTILSDIR}"/downloaders/mega-media-drive_dl.sh
 AFHDL="${UTILSDIR}"/downloaders/afh_dl.py
+RANDOM=$(date +%s)
 
 # EROFS
 FSCK_EROFS=${UTILSDIR}/bin/fsck.erofs
@@ -977,9 +978,9 @@ is_ab=$(grep -m1 -oP "(?<=^ro.build.ab_update=).*" -hs {system,system/system,ven
 treble_support=$(grep -m1 -oP "(?<=^ro.treble.enabled=).*" -hs {system,system/system}/build*.prop)
 [[ -z "${treble_support}" ]] && treble_support="false"
 otaver=$(grep -m1 -oP "(?<=^ro.build.version.ota=).*" -hs {vendor/euclid/product,oppo_product,system,system/system}/build*.prop | head -1)
-[[ ! -z "${otaver}" && -z "${fingerprint}" ]] && branch=$(echo "${otaver}" | tr ' ' '-')
+[[ ! -z "${otaver}" && -z "${fingerprint}" ]] && branch=$(echo "${otaver}-${RANDOM}" | tr ' ' '-')
 [[ -z "${otaver}" ]] && otaver=$(grep -m1 -oP "(?<=^ro.build.fota.version=).*" -hs {system,system/system}/build*.prop | head -1)
-[[ -z "${branch}" ]] && branch=$(echo "${description}" | tr ' ' '-')
+[[ -z "${branch}" ]] && branch=$(echo "${description}-${RANDOM}" | tr ' ' '-')
 
 if [[ "$PUSH_TO_GITLAB" = true ]]; then
 	rm -rf .github_token
