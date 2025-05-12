@@ -672,11 +672,12 @@ elif ${BIN_7ZZ} l -ba "${FILEPATH}" | grep -q "UPDATE.APP" 2>/dev/null || [[ $(f
 	printf "Huawei UPDATE.APP Detected\n"
 	[[ -f "${FILEPATH}" ]] && ${BIN_7ZZ} x "${FILEPATH}" UPDATE.APP 2>/dev/null >> "${TMPDIR}"/zip.log
 	find "${TMPDIR}" -type f -name "UPDATE.APP" -exec mv {} . \;
-	python3 "${SPLITUAPP}" -f "UPDATE.APP" -l super preas preavs || (
+	python3 "${SPLITUAPP}" -f "UPDATE.APP" -l || (
 	for partition in ${PARTITIONS}; do
 		python3 "${SPLITUAPP}" -f "UPDATE.APP" -l "${partition/.img/}" || printf "%s not found in UPDATE.APP\n" "${partition}"
 	done )
 	find output/ -type f -name "*.img" -exec mv {} . \;	# Partitions Are Extracted In "output" Folder
+        "${SIMG2IMG}" super*.img super.img.raw 2>/dev/null && rm super*.img
 	if [[ -f super.img ]]; then
 		printf "Creating super.img.raw ...\n"
 		"${SIMG2IMG}" super.img super_* super.img.raw 2>/dev/null
