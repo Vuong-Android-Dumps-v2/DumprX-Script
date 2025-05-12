@@ -485,8 +485,8 @@ elif ${BIN_7ZZ} l -ba "${FILEPATH}" | grep system | grep chunk | grep -q -v ".*\
 	printf "Chunk Detected.\n"
 	for partition in ${PARTITIONS}; do
 		if [[ -f "${FILEPATH}" ]]; then
-			foundpartitions=$(${BIN_7ZZ} l -ba "${FILEPATH}" | gawk '{print $NF}' | grep "${partition}".img)
-			${BIN_7ZZ} e -y -- "${FILEPATH}" *"${partition}"*chunk* */*"${partition}"*chunk* "${foundpartitions}" dummypartition 2>/dev/null >> "${TMPDIR}"/zip.log
+			foundpartitions=$(${BIN_7ZZ} l -ba "${FILEPATH}" | gawk '{print $NF}' | grep ${partition}.img)
+			${BIN_7ZZ} e -y -- "${FILEPATH}" *${partition}*chunk* */*${partition}*chunk* "${foundpartitions}" dummypartition 2>/dev/null >> "${TMPDIR}"/zip.log
 		else
 			find "${TMPDIR}" -type f -name "*${partition}*chunk*" -exec mv {} . \; 2>/dev/null
 			find "${TMPDIR}" -type f -name "*${partition}*.img" -exec mv {} . \; 2>/dev/null
@@ -496,10 +496,10 @@ elif ${BIN_7ZZ} l -ba "${FILEPATH}" | grep system | grep chunk | grep -q -v ".*\
 		romchunk=$(find . -maxdepth 1 -type f -name "*${partition}*chunk*" | cut -d'/' -f'2-' | sort)
 		if echo "${romchunk}" | grep -q "sparsechunk"; then
 			if [[ ! -f "${partition}".img ]]; then
-				"${SIMG2IMG}" "${romchunk}" "${partition}".img.raw 2>/dev/null
-				mv "${partition}".img.raw "${partition}".img
+				"${SIMG2IMG}" *${partition}*chunk* "${partition}".img.raw 2>/dev/null
+				mv ${partition}.img.raw ${partition}.img
 			fi
-			rm -rf -- *"${partition}"*chunk* 2>/dev/null
+			rm -rf -- *${partition}*chunk* 2>/dev/null
 		fi
 	done
 elif ${BIN_7ZZ} l -ba "${FILEPATH}" | gawk '{print $NF}' | grep -q "system_new.img\|^system.img\|\/system.img\|\/system_image.emmc.img\|^system_image.emmc.img" 2>/dev/null || [[ $(find "${TMPDIR}" -type f -name "system*.img" | wc -l) -ge 1 ]]; then
@@ -623,6 +623,7 @@ elif ${BIN_7ZZ} l -ba "${FILEPATH}" | grep tar.md5 | gawk '{print $NF}' | grep -
 	printf "AP tarmd5 Detected\n"
 	#mv -f "${FILEPATH}" "${TMPDIR}"/
 	[[ -f "${FILEPATH}" ]] && ${BIN_7ZZ} e -y "${FILEPATH}" 2>/dev/null >> "${TMPDIR}"/zip.log
+        rm "${FILEPATH}"
 	printf "Extracting Images...\n"
 	for i in $(ls *.tar.md5); do
 		tar -xf "${i}" || exit 1
