@@ -816,6 +816,7 @@ fi
 
 # Show some info
 neofetch || uname -r
+ls -lAog
 
 # Extract Partitions
 for p in $PARTITIONS; do
@@ -1137,6 +1138,7 @@ commit_and_push(){
 
         echo "Dumping apps..."
 	git add $(find -type f -name '*.apk') > /dev/null 2>&1
+        git add $(find -type f -name '*.apk.*') > /dev/null 2>&1
 	git commit -sm "Add apps for ${description}" > /dev/null 2>&1
 	git push -u origin "${branch}" || git push -u origin "${branch}" || git push -u origin "${branch}"
 
