@@ -1157,6 +1157,24 @@ commit_and_push(){
 	git push -u origin "${branch}" || git push -u origin "${branch}" || git push -u origin "${branch}"
 }
 
+split_files(){
+	# usage: split_files <min_file_size> <part_size>
+	# Files larger than ${1} will be split into ${2} parts as *.aa, *.ab, etc.
+	mkdir -p "${TMPDIR}" 2>/dev/null
+	find . -size +${1} | cut -d'/' -f'2-' >| "${TMPDIR}"/.largefiles
+	if [[ -s "${TMPDIR}"/.largefiles ]]; then
+		printf '#!/bin/bash\n\n' > join_split_files.sh
+		while read -r l; do
+			split -b ${2} "${l}" "${l}".
+			rm -f "${l}" 2>/dev/null
+			printf "cat %s.* 2>/dev/null >> %s\n" "${l}" "${l}" >> join_split_files.sh
+			printf "rm -f %s.* 2>/dev/null\n" "${l}" >> join_split_files.sh
+		done < "${TMPDIR}"/.largefiles
+		chmod a+x join_split_files.sh 2>/dev/null
+	fi
+	rm -rf "${TMPDIR}" 2>/dev/null
+}
+
 if [[ -s "${PROJECT_DIR}"/.github_token ]]; then
 	GITHUB_TOKEN=$(< "${PROJECT_DIR}"/.github_token)	# Write Your Github Token In a Text File
 	[[ -z "$(git config --get user.email)" ]] && git config user.email "guptasushrut@gmail.com"
@@ -1171,20 +1189,7 @@ if [[ -s "${PROJECT_DIR}"/.github_token ]]; then
 	curl -sf "https://raw.githubusercontent.com/${GIT_ORG}/${repo}/${branch}/all_files.txt" 2>/dev/null && { printf "Firmware already dumped!\nGo to https://github.com/%s/%s/tree/%s\n" "${GIT_ORG}" "${repo}" "${branch}" && exit 1; }
 	# Remove The Journal File Inside System/Vendor
 	find . -mindepth 2 -type d -name "\[SYS\]" -exec rm -rf {} \; 2>/dev/null
-	# Files larger than 62MB will be split into 47MB parts as *.aa, *.ab, etc.
-	mkdir -p "${TMPDIR}" 2>/dev/null
-	find . -size +62M | cut -d'/' -f'2-' >| "${TMPDIR}"/.largefiles
-	if [[ -s "${TMPDIR}"/.largefiles ]]; then
-		printf '#!/bin/bash\n\n' > join_split_files.sh
-		while read -r l; do
-			split -b 47M "${l}" "${l}".
-			rm -f "${l}" 2>/dev/null
-			printf "cat %s.* 2>/dev/null >> %s\n" "${l}" "${l}" >> join_split_files.sh
-			printf "rm -f %s.* 2>/dev/null\n" "${l}" >> join_split_files.sh
-		done < "${TMPDIR}"/.largefiles
-		chmod a+x join_split_files.sh 2>/dev/null
-	fi
-	rm -rf "${TMPDIR}" 2>/dev/null
+        split_files 62M 47M
 	printf "\nFinal Repository Should Look Like...\n" && ls -lAog
 	printf "\n\nStarting Git Init...\n"
 	git init		# Insure Your Github Authorization Before Running This Script
@@ -1251,6 +1256,7 @@ elif [[ -s "${PROJECT_DIR}"/.gitlab_token ]]; then
 
 	# Remove The Journal File Inside System/Vendor
 	find . -mindepth 2 -type d -name "\[SYS\]" -exec rm -rf {} \; 2>/dev/null
+        split_files 62M 47M
 	printf "\nFinal Repository Should Look Like...\n" && ls -lAog
 	printf "\n\nStarting Git Init...\n"
 
